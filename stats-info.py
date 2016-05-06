@@ -1,48 +1,24 @@
-import os
 import argparse
+from utils import loadData, merge2Dict
 
-def getContentAndHighlight(path2File):
+def countWords(lines):
     '''
-    Get content and highlights from a story in the file
-    :param path2File: path to file
-    :return: a tuple (content, highlights)
+    Count words in lines
+    :param lines:
+    :return: tuple: (number of word, vocabulary)
     '''
+    nbWords = 0
+    dictWords = {}
 
-    content = []
-    highlights = []
-    #TODO: read file
-    with open(path2File) as fread:
-        lines = [line.strip() for line in fread]
-    #TODO: get content and highlights
-    isHighlight = False
     for line in lines:
-        if line == '@highlight':
-            isHighlight = True
-            continue
-        if isHighlight:
-            highlights.append(line)
-            isHighlight = False
-        else:
-            content.append(line)
-
-    return (content, highlights)
-
-def loadData(path2Dir):
-    '''
-    Load all stories in the directory
-    :param path2Dir: path to directory
-    :return: a list of tuple (content, highlights)
-    '''
-
-    # TODO: Get list files in directory
-    lstFiles = [os.path.join(path2Dir, f) for f in os.listdir(path2Dir) if os.path.isfile(os.path.join(path2Dir, f))]
-    # TODO: Get content and highlights from a file
-    data = []
-    for f in lstFiles:
-        content, highlights = getContentAndHighlight(f)
-        data.append((content, highlights))
-
-    return data
+        words = line.split()
+        nbWords += len(words)
+        for word in words:
+            if not dictWords.has_key(word):
+                dictWords[word] = 1
+            else:
+                dictWords[word] += 1
+    return (nbWords, dictWords)
 
 def getStatsInfo(path2Dir):
     '''
@@ -57,21 +33,21 @@ def getStatsInfo(path2Dir):
     nbSentsAllConts = 0
     nbSentsAllHglights = 0
     nbDocuments = len(dataset)
+    dictWordsAllConts = {}
+    dictWordsAllHglights = {}
 
-    for content, highlights in dataset:
-        nbWordsCont = 0
-        nbWordsHglight = 0
+    for _, content, highlights in dataset:
 
         nbSentsAllConts += len(content)
         nbSentsAllHglights += len(highlights)
 
-        for line in content:
-            nbWordsCont += len(line.split())
+        nbWordsCont, dictWordsCont = countWords(content)
         nbwordsAllConts += nbWordsCont
+        dictWordsAllConts = merge2Dict(dictWordsAllConts, dictWordsCont)
 
-        for line in highlights:
-            nbWordsHglight += len(line.split())
+        nbWordsHglight, dictWordsHglight = countWords(highlights)
         nbWordsAllHglights += nbWordsHglight
+        dictWordsAllHglights = merge2Dict(dictWordsAllHglights, dictWordsHglight)
 
     avgWordAllConts = nbwordsAllConts * 1.0 / nbDocuments
     avgWordAllHglights = nbWordsAllHglights * 1.0 / nbDocuments
@@ -79,6 +55,8 @@ def getStatsInfo(path2Dir):
     avgSentAllHglights = nbSentsAllHglights * 1.0 / nbDocuments
 
     print "Number of documents: ", nbDocuments
+    print "Vocabulary size of contents: ", len(dictWordsAllConts)
+    print "Vocabulary size of highlights: ", len(dictWordsAllHglights)
     print "Average words in the content: %.2f" % avgWordAllConts
     print "Average words in the highlights: %.2f" % avgWordAllHglights
     print "Average sentences in the content: %.2f" % avgSentAllConts
