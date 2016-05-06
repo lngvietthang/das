@@ -3,7 +3,7 @@ import os
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import TreebankWordTokenizer
 
-from utils import loadData, saveData, loadRule
+from utils import loadData, saveData, loadRule, ProgressBar
 
 def sentTokenize(lines):
     '''
@@ -40,6 +40,7 @@ def preprocess(dataset):
     :return: list - Preprocessed dataset which have same format like the original
     '''
     result = []
+    progress_bar = ProgressBar(len(dataset))
     for _, content, highlights in dataset:
         #TODO: Tokenize list of paragraphs in content part into list of sentences
         content = sentTokenize(content)
@@ -53,6 +54,7 @@ def preprocess(dataset):
             highlights = [sent.replace(rule[0], rule[1]) for sent in highlights]
 
         result.append((_, content, highlights))
+        progress_bar.Increment()
 
     return result
 

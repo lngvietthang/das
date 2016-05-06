@@ -1,4 +1,5 @@
 import os
+import sys
 
 def getContentAndHighlight(path2File):
     '''
@@ -96,3 +97,31 @@ def merge2Dict(dict1, dict2):
             result[key] = value
 
     return result
+
+class ProgressBar(object):
+  """Simple progress bar.
+
+  Output example:
+    100.00% [2152/2152]
+  """
+
+  def __init__(self, total=100, stream=sys.stderr):
+    self.total = total
+    self.stream = stream
+    self.last_len = 0
+    self.curr = 0
+
+  def Increment(self):
+    self.curr += 1
+    self.PrintProgress(self.curr)
+
+    if self.curr == self.total:
+      print ''
+
+  def PrintProgress(self, value):
+    self.stream.write('\b' * self.last_len)
+    pct = 100 * self.curr / float(self.total)
+    out = '{:.2f}% [{}/{}]'.format(pct, value, self.total)
+    self.last_len = len(out)
+    self.stream.write(out)
+    self.stream.flush()
