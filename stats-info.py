@@ -1,24 +1,5 @@
 import argparse
-from utils import loadData, merge2Dict
-
-def countWords(lines):
-    '''
-    Count words in lines
-    :param lines:
-    :return: tuple: (number of word, vocabulary)
-    '''
-    nbWords = 0
-    dictWords = {}
-
-    for line in lines:
-        words = line.split()
-        nbWords += len(words)
-        for word in words:
-            if not dictWords.has_key(word):
-                dictWords[word] = 1
-            else:
-                dictWords[word] += 1
-    return (nbWords, dictWords)
+from utils import loadData, merge2Dict, ProgressBar, countWords, countDiff21
 
 def getStatsInfo(path2Dir):
     '''
@@ -32,9 +13,12 @@ def getStatsInfo(path2Dir):
     nbWordsAllHglights = 0
     nbSentsAllConts = 0
     nbSentsAllHglights = 0
+    diffHglightsVsContent = 0
     nbDocuments = len(dataset)
     dictWordsAllConts = {}
     dictWordsAllHglights = {}
+
+    progress_bar = ProgressBar(len(dataset))
 
     for _, content, highlights in dataset:
 
@@ -47,12 +31,17 @@ def getStatsInfo(path2Dir):
 
         nbWordsHglight, dictWordsHglight = countWords(highlights)
         nbWordsAllHglights += nbWordsHglight
+        #TODO: Xem lai cach tinh trung binh so luong tu moi
         dictWordsAllHglights = merge2Dict(dictWordsAllHglights, dictWordsHglight)
+        diffHglightsVsContent += countDiff21(dictWordsCont.keys(), dictWordsHglight.keys())
+        progress_bar.Increment()
 
     avgWordAllConts = nbwordsAllConts * 1.0 / nbDocuments
     avgWordAllHglights = nbWordsAllHglights * 1.0 / nbDocuments
     avgSentAllConts = nbSentsAllConts * 1.0 / nbDocuments
     avgSentAllHglights = nbSentsAllHglights * 1.0 / nbDocuments
+    avgDiffHglightsVsContent = diffHglightsVsContent * 1.0 /nbDocuments
+
 
     print "Number of documents: ", nbDocuments
     print "Vocabulary size of contents: ", len(dictWordsAllConts)
@@ -61,6 +50,7 @@ def getStatsInfo(path2Dir):
     print "Average words in the highlights: %.2f" % avgWordAllHglights
     print "Average sentences in the content: %.2f" % avgSentAllConts
     print "Average sentences in the highlights: %.2f" % avgSentAllHglights
+    print "Average new words in the highlights: %.2f" % avgDiffHglightsVsContent
 
 def main():
     #TODO: Parse the list argruments

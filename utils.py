@@ -1,5 +1,34 @@
 import os
 import sys
+import io
+
+class ProgressBar(object):
+  """Simple progress bar.
+
+  Output example:
+    100.00% [2152/2152]
+  """
+
+  def __init__(self, total=100, stream=sys.stderr):
+    self.total = total
+    self.stream = stream
+    self.last_len = 0
+    self.curr = 0
+
+  def Increment(self):
+    self.curr += 1
+    self.PrintProgress(self.curr)
+
+    if self.curr == self.total:
+      print ''
+
+  def PrintProgress(self, value):
+    self.stream.write('\b' * self.last_len)
+    pct = 100 * self.curr / float(self.total)
+    out = '{:.2f}% [{}/{}]'.format(pct, value, self.total)
+    self.last_len = len(out)
+    self.stream.write(out)
+    self.stream.flush()
 
 def getContentAndHighlight(path2File):
     '''
@@ -12,7 +41,7 @@ def getContentAndHighlight(path2File):
     highlights = []
     lines = []
     #TODO: read file
-    with open(path2File) as fread:
+    with io.open(path2File, encoding='utf8') as fread:
         for line in fread:
             line = line.strip()
             if line != '':
@@ -37,14 +66,16 @@ def loadData(path2Dir):
     :param path2Dir: path to directory
     :return: a list of tuple (filename, content, highlights)
     '''
-
+    print "Loading data..."
     # TODO: Get list files in directory
     lstFiles = [filename for filename in os.listdir(path2Dir) if os.path.isfile(os.path.join(path2Dir, filename))]
     # TODO: Get content and highlights from a file
     data = []
+    progress_bar = ProgressBar(len(lstFiles))
     for filename in lstFiles:
         content, highlights = getContentAndHighlight(os.path.join(path2Dir, filename))
         data.append((filename, content, highlights))
+        progress_bar.Increment()
 
     return data
 
@@ -60,12 +91,15 @@ def saveData(dataset, path2OutDir, extension):
     :param extension: Extension of the file
     :return: None
     '''
+    print "Saving data..."
+    progress_bar = ProgressBar(len(lstFiles))
     for filename, content, highlights in dataset:
-        with open(os.path.join(path2OutDir, filename + '.' + extension), 'w') as fwrite:
+        with open(os.path.join(path2OutDir, filename + '.' + extension), 'w', encoding='utf8') as fwrite:
             fwrite.write('\n'.join([line for line in content]))
             fwrite.write('\n')
             fwrite.write('\n'.join(['@highlight\n' + line for line in highlights]))
             fwrite.flush()
+            progress_bar.Increment()
 
 def loadRule(path2File):
     '''
@@ -98,30 +132,52 @@ def merge2Dict(dict1, dict2):
 
     return result
 
-class ProgressBar(object):
-  """Simple progress bar.
+def buildDict(sents):
+    '''
+    Build dictionary, key: word - value: index (start from 1)
+    :param sents: list of sentences
+    :return: dict
+    '''
 
-  Output example:
-    100.00% [2152/2152]
-  """
+    dictWords = {}
+    key = 1
+    for sent in sents:
+        words = sent.split()
+        for word in words:
+            if not dictWords.has_key(word):
+                dictWords[word] = key
+                key += 1
+    dictWords['UNK'] = key
 
-  def __init__(self, total=100, stream=sys.stderr):
-    self.total = total
-    self.stream = stream
-    self.last_len = 0
-    self.curr = 0
+    return dictWords
 
-  def Increment(self):
-    self.curr += 1
-    self.PrintProgress(self.curr)
+def countWords(lines):
+    '''
+    Count words in lines
+    :param lines:
+    :return: tuple: (number of word, vocabulary)
+    '''
+    nbWords = 0
+    dictWords = {}
 
-    if self.curr == self.total:
-      print ''
+    for line in lines:
+        words = line.split()
+        nbWords += len(words)
+        for word in words:
+            if not dictWords.has_key(word):
+                dictWords[word] = 1
+            else:
+                dictWords[word] += 1
+    return (nbWords, dictWords)
 
-  def PrintProgress(self, value):
-    self.stream.write('\b' * self.last_len)
-    pct = 100 * self.curr / float(self.total)
-    out = '{:.2f}% [{}/{}]'.format(pct, value, self.total)
-    self.last_len = len(out)
-    self.stream.write(out)
-    self.stream.flush()
+def countDiff21(list1, list2):
+    '''
+    Count the number of different between list2 and list1
+    :param list1: list 1
+    :param list2: list 2
+    :return: the number of different
+    '''
+
+    diff21 = len(list(set(list2) - set(list1)))
+
+    return diff21
