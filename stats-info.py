@@ -1,5 +1,9 @@
 import argparse
-from utils import loadData, merge2Dict, ProgressBar, countWords, countDiff21
+import os
+from utils import merge2Dict, ProgressBar, countWords, countDiff21, getFilenames, getContentAndHighlight
+
+verbose = os.environ.get('VERBOSE', 'no') == 'yes'
+debug = os.environ.get('DEBUG', 'no') == 'yes'
 
 def getStatsInfo(path2Dir):
     '''
@@ -7,21 +11,23 @@ def getStatsInfo(path2Dir):
     :param path2Dir:
     :return: None
     '''
-    dataset = loadData(path2Dir)
+    print 'Processing...'
+    lstFiles = getFilenames(path2Dir)
 
     nbwordsAllConts = 0
     nbWordsAllHglights = 0
     nbSentsAllConts = 0
     nbSentsAllHglights = 0
     diffHglightsVsContent = 0
-    nbDocuments = len(dataset)
+    nbDocuments = len(lstFiles)
     dictWordsAllConts = {}
     dictWordsAllHglights = {}
 
-    progress_bar = ProgressBar(len(dataset))
+    progress_bar = ProgressBar(nbDocuments)
 
-    for _, content, highlights in dataset:
-
+    for filename in lstFiles:
+        fullPath = os.path.join(path2Dir, filename)
+        content, highlights = getContentAndHighlight(fullPath, format='pre')
         nbSentsAllConts += len(content)
         nbSentsAllHglights += len(highlights)
 
@@ -42,15 +48,17 @@ def getStatsInfo(path2Dir):
     avgSentAllHglights = nbSentsAllHglights * 1.0 / nbDocuments
     avgDiffHglightsVsContent = diffHglightsVsContent * 1.0 /nbDocuments
 
-
-    print "Number of documents: ", nbDocuments
-    print "Vocabulary size of contents: ", len(dictWordsAllConts)
-    print "Vocabulary size of highlights: ", len(dictWordsAllHglights)
-    print "Average words in the content: %.2f" % avgWordAllConts
-    print "Average words in the highlights: %.2f" % avgWordAllHglights
-    print "Average sentences in the content: %.2f" % avgSentAllConts
-    print "Average sentences in the highlights: %.2f" % avgSentAllHglights
-    print "Average new words in the highlights: %.2f" % avgDiffHglightsVsContent
+    print '========================================================'
+    print 'Statistical Information'
+    print 'Number of documents: ', nbDocuments
+    print 'Vocabulary size of contents: ', len(dictWordsAllConts)
+    print 'Vocabulary size of highlights: ', len(dictWordsAllHglights)
+    print 'Average words in the content: %.2f' % avgWordAllConts
+    print 'Average words in the highlights: %.2f' % avgWordAllHglights
+    print 'Average sentences in the content: %.2f' % avgSentAllConts
+    print 'Average sentences in the highlights: %.2f' % avgSentAllHglights
+    print 'Average new words in the highlights: %.2f' % avgDiffHglightsVsContent
+    print '========================================================'
 
 def main():
     #TODO: Parse the list argruments
@@ -62,7 +70,7 @@ def main():
     path2Dir = args.dir
 
     getStatsInfo(path2Dir)
-
+    print 'DONE!'
 
 if __name__ == '__main__':
     main()

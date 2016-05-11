@@ -2,6 +2,9 @@ import os
 import sys
 import io
 
+verbose = os.environ.get('VERBOSE', 'no') == 'yes'
+debug = os.environ.get('DEBUG', 'no') == 'yes'
+
 class ProgressBar(object):
   """Simple progress bar.
 
@@ -30,7 +33,7 @@ class ProgressBar(object):
     self.stream.write(out)
     self.stream.flush()
 
-def getContentAndHighlight(path2File):
+def getContentAndHighlight(path2File, format='raw'):
     '''
     Get content and highlights from a story in the file
     :param path2File: path to file
@@ -47,18 +50,33 @@ def getContentAndHighlight(path2File):
             if line != '':
                 lines.append(line)
     #TODO: get content and highlights
-    isHighlight = False
-    for line in lines:
-        if line == '@highlight':
-            isHighlight = True
-            continue
-        if isHighlight:
-            highlights.append(line)
-            isHighlight = False
-        else:
-            content.append(line)
+    if format == 'raw':
+        isHighlight = False
+        for line in lines:
+            if line == '@highlight':
+                isHighlight = True
+                continue
+            if isHighlight:
+                highlights.append(line)
+                isHighlight = False
+            else:
+                content.append(line)
+    elif format == 'pre':
+        N = int(lines[0].split()[1]) # The format of first line is @content N, where N is number of sentences in content part.
+        content = lines[1:N+1]
+        highlights = lines[N+1:]
 
     return (content, highlights)
+
+def getFilenames(path2Dir):
+    '''
+    Get list of file names in the directory.
+    :param path2Dir: path to directory
+    :return: list of files name
+    '''
+    lstFiles = [filename for filename in os.listdir(path2Dir) if os.path.isfile(os.path.join(path2Dir, filename))]
+
+    return lstFiles
 
 def loadData(path2Dir):
     '''
@@ -82,22 +100,28 @@ def loadData(path2Dir):
 def saveData(dataset, path2OutDir, extension):
     '''
     Save dataset in the directory. One tuple (content, highlights) to one file following the format:
-    Content
-    @highlight
+    @content M
+    content 1
+    ...
+    content M
+    @highlight N
     hightlight 1
     ...
+    hightlight N
     :param dataset: A list of tuple (filename, content, highlights)
     :param path2OutDir: Path to the output directory.
     :param extension: Extension of the file
     :return: None
     '''
     print "Saving data..."
-    progress_bar = ProgressBar(len(lstFiles))
+    progress_bar = ProgressBar(len(dataset))
     for filename, content, highlights in dataset:
-        with open(os.path.join(path2OutDir, filename + '.' + extension), 'w', encoding='utf8') as fwrite:
-            fwrite.write('\n'.join([line for line in content]))
-            fwrite.write('\n')
-            fwrite.write('\n'.join(['@highlight\n' + line for line in highlights]))
+        with io.open(os.path.join(path2OutDir, filename + '.' + extension), 'w', encoding='utf8') as fwrite:
+            fwrite.write(u'@content %d\n' % len(content))
+            fwrite.write(u'\n'.join([line for line in content]))
+            fwrite.write(u'\n')
+            fwrite.write(u'@highlight %d\n' % len(highlights))
+            fwrite.write(u'\n'.join([line for line in highlights]))
             fwrite.flush()
             progress_bar.Increment()
 
@@ -147,7 +171,7 @@ def buildDict(sents):
             if not dictWords.has_key(word):
                 dictWords[word] = key
                 key += 1
-    dictWords['UNK'] = key
+    dictWords[u'UNK'] = key
 
     return dictWords
 
@@ -181,3 +205,19 @@ def countDiff21(list1, list2):
     diff21 = len(list(set(list2) - set(list1)))
 
     return diff21
+
+def saveContentandHighlights(content, highlights, path2File):
+    '''
+
+    :param content: content of story
+    :param highlights: highlights of story
+    :param path2File: path to file
+    :return: None
+    '''
+    with io.open(path2File, 'w', encoding='utf8') as fwrite:
+        fwrite.write(u'@content %d\n' % len(content))
+        fwrite.write(u'\n'.join([line for line in content]))
+        fwrite.write(u'\n')
+        fwrite.write(u'@highlight %d\n' % len(highlights))
+        fwrite.write(u'\n'.join([line for line in highlights]))
+        fwrite.flush()
