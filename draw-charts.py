@@ -106,7 +106,6 @@ def main():
         apikey = fread.readline().strip()
     print username, apikey
     py.sign_in(username, apikey)
-    #tls.set_credentials_file(username=username, api_key=apikey)
 
     drawChart(path2InDir, path2OutDir, lstCorpus)
 
