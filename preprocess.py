@@ -2,7 +2,7 @@ import argparse
 import os
 import string
 from nltk.tokenize import sent_tokenize
-from nltk.tokenize import TreebankWordTokenizer
+from nltk.tokenize import StanfordTokenizer, wordpunct_tokenize
 from nltk.corpus import stopwords
 
 from utils import loadRule, ProgressBar, getFilenames, getContentAndHighlight, saveContentandHighlights
@@ -29,8 +29,8 @@ def wordTokenize(sents):
     :param sents: list of sentences
     :return: list of sentences which words are separated by one whitespace
     '''
-    tokenizer = TreebankWordTokenizer()
-    result = [tokenizer.tokenize(sent) for sent in sents]
+    #tokenizer = StanfordTokenizer()
+    result = [wordpunct_tokenize(sent) for sent in sents]
     result = [' '.join([word for word in sent]) for sent in result]
 
     return result
@@ -42,12 +42,14 @@ def removePunct(sents):
     :return: list of sentences which not contain any punctuations.
     '''
     punctuation = list(string.punctuation)
+    unicodeMap = dict((ord(char), None) for char in string.punctuation)
     result = []
 
     for sent in sents:
         words = sent.split()
         words = [word for word in words if word not in punctuation]
-        result.append(u' '.join([word for word in words]))
+        words = [word.translate(unicodeMap) for word in words]
+        result.append(u' '.join([word for word in words if word != '']))
 
     return result
 

@@ -96,7 +96,7 @@ def getStatsInfo(path2InDir, path2OutDir, corpus):
     statsInfo = {}
     statsInfo['nbDocument'] = nbDocuments
     statsInfo['vbSizeContent'] = len(dictWordsAllConts)
-    statsInfo['vbSizeHglight'] = len(dictWordsAllConts)
+    statsInfo['vbSizeHglight'] = len(dictWordsAllHglights)
     statsInfo['avgNbWordsContent'] = avgWordAllConts
     statsInfo['avgNbWordsHglight'] = avgWordAllHglights
     statsInfo['avgNbSentsContent'] = avgSentAllConts
@@ -113,7 +113,6 @@ def main():
     parser.add_argument('-indir', required=True, type=str)
     parser.add_argument('-outdir', required=True, type=str)
     parser.add_argument('-corpus', required=True, type=str)
-
     args = parser.parse_args()
 
     path2InDir = args.indir
