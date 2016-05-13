@@ -1,7 +1,9 @@
 import argparse
 import os
+import string
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import TreebankWordTokenizer
+from nltk.corpus import stopwords
 
 from utils import loadRule, ProgressBar, getFilenames, getContentAndHighlight, saveContentandHighlights
 
@@ -33,6 +35,38 @@ def wordTokenize(sents):
 
     return result
 
+def removePunct(sents):
+    '''
+    Remove the punctuations in sentence
+    :param sents: list of sentences
+    :return: list of sentences which not contain any punctuations.
+    '''
+    punctuation = list(string.punctuation)
+    result = []
+
+    for sent in sents:
+        words = sent.split()
+        words = [word for word in words if word not in punctuation]
+        result.append(u' '.join([word for word in words]))
+
+    return result
+
+def removeStopwords(sents):
+    '''
+    Remove stop-words in sentences
+    :param sents: list of sentences
+    :return: list of sentences which not contain any punctuations.
+    '''
+    lstStopwords = stopwords.words('english')
+    result = []
+
+    for sent in sents:
+        words = sent.split()
+        words = [word for word in words if word not in lstStopwords]
+        result.append(u' '.join([word for word in words]))
+
+    return result
+
 def preprocess(content, highlights):
     '''
     Preprocess the dataset:
@@ -53,6 +87,12 @@ def preprocess(content, highlights):
     for rule in rules:
         content = [sent.replace(rule[0], rule[1]) for sent in content]
         highlights = [sent.replace(rule[0], rule[1]) for sent in highlights]
+    #TODO: Remove punctuations
+    content = removePunct(content)
+    highlights = removePunct(highlights)
+    # TODO: Remove stop-word
+    content = removeStopwords(content)
+    highlights = removeStopwords(highlights)
 
     return (content, highlights)
 
