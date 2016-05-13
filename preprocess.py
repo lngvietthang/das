@@ -67,14 +67,16 @@ def removeStopwords(sents):
 
     return result
 
-def preprocess(content, highlights):
+def preprocess(content, highlights, config):
     '''
     Preprocess the dataset:
         ./ Sentence segmentation
         ./ Word segmentation
         ./ ... (Update lated)
-    :param dataset: list of tuple (filename, content, highlights)
-    :return: list - Preprocessed dataset which have same format like the original
+    :param content: list of paragraph in the content part
+    :param highlights: list of highlights
+    :param config: dict of config. E.g. dict['remove stopword'] = True, ...
+    :return: tuple (content, highlights) are processed
     '''
 
     #TODO: Tokenize list of paragraphs in content part into list of sentences
@@ -88,11 +90,13 @@ def preprocess(content, highlights):
         content = [sent.replace(rule[0], rule[1]) for sent in content]
         highlights = [sent.replace(rule[0], rule[1]) for sent in highlights]
     #TODO: Remove punctuations
-    content = removePunct(content)
-    highlights = removePunct(highlights)
+    if config['remove punct']:
+        content = removePunct(content)
+        highlights = removePunct(highlights)
     # TODO: Remove stop-word
-    content = removeStopwords(content)
-    highlights = removeStopwords(highlights)
+    if config['remove stopword']:
+        content = removeStopwords(content)
+        highlights = removeStopwords(highlights)
 
     return (content, highlights)
 
@@ -111,13 +115,16 @@ def main():
     if not os.path.exists(path2OutDir):
         os.mkdir(path2OutDir)
     print "Preprocessing ..."
+    confPreprocess = {}
+    confPreprocess['remove stopword'] = False
+    confPreprocess['remove punct'] = True
     count = 0
     lstFiles = getFilenames(path2Dir)
     progress_bar = ProgressBar(len(lstFiles))
     for filename in lstFiles:
         fullPath = os.path.join(path2Dir, filename)
         content, highlights = getContentAndHighlight(fullPath)
-        content, highlights = preprocess(content, highlights)
+        content, highlights = preprocess(content, highlights, confPreprocess)
         if corpus.lower() == 'dailymail':
             if content[0] == 'By':
                 count += 1

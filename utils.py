@@ -47,20 +47,34 @@ def getContentAndHighlight(path2File, format='raw'):
     with io.open(path2File, encoding='utf8') as fread:
         for line in fread:
             line = line.strip()
-            if line != '':
-                lines.append(line)
+            lines.append(line)
     #TODO: get content and highlights
+    paragraph = []
     if format == 'raw':
-        isHighlight = False
+        idxCont = 0
         for line in lines:
-            if line == '@highlight':
-                isHighlight = True
-                continue
-            if isHighlight:
-                highlights.append(line)
-                isHighlight = False
+            if line != '':
+                if line == '@highlight':
+                    if len(paragraph) != 0:
+                        content.append(' '.join([line for line in paragraph]))
+                        paragraph = []
+                    break
+                paragraph.append(line)
             else:
-                content.append(line)
+                content.append(' '.join([line for line in paragraph]))
+                paragraph = []
+            idxCont += 1
+        paragraph = []
+        for line in lines[idxCont+1:]:
+            if line != '':
+                if line != '@highlight':
+                    paragraph.append(line)
+                else:
+                    if len(paragraph) != 0:
+                        highlights.append(' '.join([line for line in paragraph]))
+                        paragraph = []
+        if len(paragraph) != 0:
+            highlights.append(' '.join([line for line in paragraph]))
     elif format == 'pre':
         N = int(lines[0].split()[1]) # The format of first line is @content N, where N is number of sentences in content part.
         content = lines[1:N+1]
