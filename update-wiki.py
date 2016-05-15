@@ -68,6 +68,14 @@ def updateWiki(path2StatsDir, path2WikiDir, lstCorpus):
             fwrite.write(' %d |' % stInfo['avgNbNewWords'])
         fwrite.write('\n')
 
+        # The list of charts
+        fwrite.write('Some dataset\'s statistical information:\n')
+        fwrite.write('![Number of Documents](https://github.com/lngvietthang/das/blob/master/stats-info/NDoc.png)\n')
+        fwrite.write('![Vocabulary Size](https://github.com/lngvietthang/das/blob/master/stats-info/VSize.png)\n')
+        fwrite.write('![Average number of words](https://github.com/lngvietthang/das/blob/master/stats-info/ANWords.png)\n')
+        fwrite.write('![Average number of sentences](https://github.com/lngvietthang/das/blob/master/stats-info/ANSents.png)\n')
+        fwrite.write('![Average number of new words](https://github.com/lngvietthang/das/blob/master/stats-info/ANNWords.png)\n')
+
         fwrite.flush()
 
 def main():

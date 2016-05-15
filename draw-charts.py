@@ -36,6 +36,7 @@ def drawChart(path2InDir, path2OutDir, lstCorpus):
                             )
     nbDocFig = go.Figure(data=nbDocData, layout=nbDocLayout)
     py.image.save_as(nbDocFig, os.path.join(path2OutDir, 'NbDoc.png'))
+
     # The Vocabulary Size
     yVocabSizeContent = [stInfo['vbSizeContent'] for stInfo in lstStatsInfo]
     yVocabSizeHglight = [stInfo['vbSizeHglight'] for stInfo in lstStatsInfo]
@@ -55,6 +56,7 @@ def drawChart(path2InDir, path2OutDir, lstCorpus):
                                 )
     vocabSizeFig = go.Figure(data=vocabSizeData, layout=vocabSizeLayout)
     py.image.save_as(vocabSizeFig, os.path.join(path2OutDir, 'VSize.png'))
+
     # The Average number of words
     yAvgNbWordsContent = [stInfo['avgNbWordsContent'] for stInfo in lstStatsInfo]
     yAvgNbWordsHglight = [stInfo['avgNbWordsHglight'] for stInfo in lstStatsInfo]
@@ -64,6 +66,7 @@ def drawChart(path2InDir, path2OutDir, lstCorpus):
     avgNbWordsLayout = go.Layout(title='The Average Number of Words', width=800, height=640, barmode='group')
     avgNbWordsFig = go.Figure(data=avgNbWordsData, layout=avgNbWordsLayout)
     py.image.save_as(avgNbWordsFig, os.path.join(path2OutDir, 'ANWords.png'))
+
     # The Average number of sentences
     yAvgNbSentsContent = [stInfo['avgNbSentsContent'] for stInfo in lstStatsInfo]
     yAvgNbSentsHglight = [stInfo['avgNbSentsHglight'] for stInfo in lstStatsInfo]
@@ -73,6 +76,7 @@ def drawChart(path2InDir, path2OutDir, lstCorpus):
     avgNbSentsLayout = go.Layout(title='The Average Number of Sentences', width=800, height=640, barmode='group')
     avgNbSentsFig = go.Figure(data=avgNbSentsData, layout=avgNbSentsLayout)
     py.image.save_as(avgNbSentsFig, os.path.join(path2OutDir, 'ANSents.png'))
+
     # The Average number of new words
     yNbNewWords = [stInfo['avgNbNewWords'] for stInfo in lstStatsInfo]
     avgNbNewWordsData = [go.Bar(x=xCorpus, y=yNbNewWords)]
