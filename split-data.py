@@ -32,8 +32,8 @@ def main():
 
     shuffle(lstFiles)
 
-    trainingRatio = 0.8
-    devRatio = 0.1
+    trainingRatio = 0.9
+    devRatio = 0.05
 
     nbDoc = len(lstFiles)
 

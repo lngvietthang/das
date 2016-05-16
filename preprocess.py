@@ -105,12 +105,12 @@ def preprocess(content, highlights, config):
 def main():
     #TODO: Parse the list of arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-dir', required=True, type=str)
+    parser.add_argument('-indir', required=True, type=str)
     parser.add_argument('-outdir', required=True, type=str)
     parser.add_argument('-corpus', required=True, type=str)
     args = parser.parse_args()
 
-    path2Dir = args.dir
+    path2InDir = args.indir
     path2OutDir = args.outdir
     corpus = args.corpus
 
@@ -121,10 +121,10 @@ def main():
     confPreprocess['remove stopword'] = False
     confPreprocess['remove punct'] = True
     count = 0
-    lstFiles = getFilenames(path2Dir)
+    lstFiles = getFilenames(path2InDir)
     progress_bar = ProgressBar(len(lstFiles))
     for filename in lstFiles:
-        fullPath = os.path.join(path2Dir, filename)
+        fullPath = os.path.join(path2InDir, filename)
         content, highlights = getContentAndHighlight(fullPath)
         content, highlights = preprocess(content, highlights, confPreprocess)
         if corpus.lower() == 'dailymail':

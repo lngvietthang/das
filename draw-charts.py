@@ -90,6 +90,24 @@ def drawChart(path2InDir, path2OutDir, lstCorpus):
     avgNbNewWordsFig = go.Figure(data=avgNbNewWordsData, layout=avgNbNewWordsLayout)
     py.image.save_as(avgNbNewWordsFig, os.path.join(path2OutDir, 'ANNWords.png'))
 
+    # Distribution length of content
+    lstNbWordsContentData = []
+    for i, corpus in enumerate(xCorpus):
+        lstNbWordsContentData.append(go.Histogram(x=lstStatsInfo[i]['lstNbWordsCont'], name=corpus, opacity=0.75))
+    lstNbWordsContentLayout = go.Layout(title='The Distribution of Content Length', width=800, height=640, barmode='overlay', \
+                                        xaxis=dict(title='Length'), yaxis=dict(title='Count'), bargap=0.25, bargroupgap=0.3)
+    lstNbWordsContentFig = go.Figure(data=lstNbWordsContentData, layout=lstNbWordsContentLayout)
+    py.image.save_as(lstNbWordsContentFig, os.path.join(path2OutDir, 'DNWContent.png'))
+    # Distribution length of highlights
+    lstNbWordsHglightData = []
+    for i, corpus in enumerate(xCorpus):
+        lstNbWordsHglightData.append(go.Histogram(x=lstStatsInfo[i]['lstNbWordsHglight'], name=corpus, opacity=0.75))
+    lstNbWordsHglightLayout = go.Layout(title='The Distribution of Highlight Length', width=800, height=640,
+                                        barmode='overlay', \
+                                        xaxis=dict(title='Length'), yaxis=dict(title='Count'), bargap=0.25,
+                                        bargroupgap=0.3)
+    lstNbWordsHglightFig = go.Figure(data=lstNbWordsHglightData, layout=lstNbWordsHglightLayout)
+    py.image.save_as(lstNbWordsHglightFig, os.path.join(path2OutDir, 'DNWHighlight.png'))
 def main():
     # TODO: Parse the list of arguments
     parser = argparse.ArgumentParser()
