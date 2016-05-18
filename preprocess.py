@@ -107,12 +107,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-indir', required=True, type=str)
     parser.add_argument('-outdir', required=True, type=str)
-    parser.add_argument('-corpus', required=True, type=str)
     args = parser.parse_args()
 
     path2InDir = args.indir
     path2OutDir = args.outdir
-    corpus = args.corpus
 
     if not os.path.exists(path2OutDir):
         os.mkdir(path2OutDir)
@@ -120,19 +118,21 @@ def main():
     confPreprocess = {}
     confPreprocess['remove stopword'] = False
     confPreprocess['remove punct'] = True
-    count = 0
+    nbSkipFile = 0
+    lstErrors = []
     lstFiles = getFilenames(path2InDir)
     progress_bar = ProgressBar(len(lstFiles))
     for filename in lstFiles:
         fullPath = os.path.join(path2InDir, filename)
-        content, highlights = getContentAndHighlight(fullPath)
+        try:
+            content, highlights = getContentAndHighlight(fullPath)
+        except ValueError:
+            nbSkipFile += 1
+            continue
         content, highlights = preprocess(content, highlights, confPreprocess)
-        if corpus.lower() == 'dailymail':
-            if content[0] == 'By':
-                count += 1
         saveContentandHighlights(content, highlights, os.path.join(path2OutDir, filename + '.pre'))
         progress_bar.Increment()
-    print count
+    print 'NOTE: We skip %d file because length of content or highlights is zero.' % nbSkipFile
     print 'DONE!'
 
 if __name__ == '__main__':

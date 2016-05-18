@@ -61,8 +61,9 @@ def getContentAndHighlight(path2File, format='raw'):
                     break
                 paragraph.append(line)
             else:
-                content.append(' '.join([line for line in paragraph]))
-                paragraph = []
+                if len(paragraph) != 0:
+                    content.append(' '.join([line for line in paragraph]))
+                    paragraph = []
             idxCont += 1
         paragraph = []
         for line in lines[idxCont+1:]:
@@ -79,6 +80,11 @@ def getContentAndHighlight(path2File, format='raw'):
         N = int(lines[0].split()[1]) # The format of first line is @content N, where N is number of sentences in content part.
         content = lines[1:N+1]
         highlights = lines[N+1:]
+
+    if len(content) == 0:
+        raise ValueError('Length of Content is zero!')
+    if len(highlights) == 0:
+        raise ValueError('Length of Highlight is zero!')
 
     return (content, highlights)
 
