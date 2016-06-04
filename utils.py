@@ -3,7 +3,7 @@ import sys
 import io
 import xml.etree.ElementTree as ET
 import nltk
-from exsum.exsum import select_k_sents
+from exsum.exsum import select_k_sents, select_k_words
 import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
@@ -90,10 +90,11 @@ def getContentAndHighlight(path2File, format='raw'):
         highlights = lines[N+1:]
 
     if len(content) == 0:
-        raise ValueError('Length of Content is zero!')
+        return (None, None)
+        raise ValueError('Length of Content is zero!', path2File)
     if len(highlights) == 0:
-        raise ValueError('Length of Highlight is zero!')
-
+        return (None, None)
+        raise ValueError('Length of Highlight is zero!', path2File)
     return (content, highlights)
 
 def getFilenames(path2Dir):
@@ -119,11 +120,13 @@ def loadData(path2Dir):
     data = []
     progress_bar = ProgressBar(len(lstFiles))
     for counter,filename in enumerate(lstFiles):
+        if filename[0] == ".":
+            continue
         content, highlights = getContentAndHighlight(os.path.join(path2Dir, filename))
+        if content is None or highlights is None:
+            continue
         data.append((filename, content, highlights))
         progress_bar.Increment()
-        if counter == 1000:
-            break
     return data
 
 def saveData(dataset, path2OutDir, extension):
@@ -154,7 +157,7 @@ def saveData(dataset, path2OutDir, extension):
             fwrite.flush()
             progress_bar.Increment()
 
-def saveData_ksent(dataset, path2OutDir, extension, k_sent= 5, if_idf_vectorizer = None):
+def saveData_ksent(dataset, path2OutDir, extension, k_sent= 5, tf_idf_vectorizer = None):
     '''
     Save dataset in the directory. One tuple (content, highlights) to one file following the format:
     @content M
@@ -170,16 +173,72 @@ def saveData_ksent(dataset, path2OutDir, extension, k_sent= 5, if_idf_vectorizer
     :param extension: Extension of the file
     :return: None
     '''
-    if if_idf_vectorizer is None:
+    if tf_idf_vectorizer is None:
         with open("exsum/tf_idf_vectorizer_100_01.pickle", mode="rb") as f:
-            if_idf_vectorizer = pickle.load(f)
+            tf_idf_vectorizer = pickle.load(f)
 
     print "Saving data..."
     progress_bar = ProgressBar(len(dataset))
     for filename, content, highlights in dataset:
-        selected_sents = select_k_sents(content,if_idf_vectorizer, k_sent)
+        selected_sents = select_k_sents(content,tf_idf_vectorizer, k_sent)
         saveContentandHighlights(selected_sents,highlights,os.path.join(path2OutDir, filename + '.' + extension))
         progress_bar.Increment()
+
+def save_data_4_nn_k_sents(dataset, path2OutDir, k_sent= -1, tf_idf_vectorizer = None, data_name = "cnn"):
+
+    if os.path.isdir(path2OutDir + data_name) is False:
+        os.makedirs(path2OutDir + data_name)
+
+    fo_content = io.open(path2OutDir + "{0}/{1}sent_{2}line.content".format(data_name,k_sent,len(dataset)), "w", encoding='utf8')
+    fo_sum = io.open(path2OutDir + "{0}/{1}sent_{2}line.summary".format(data_name,k_sent,len(dataset)), "w", encoding='utf8')
+    if k_sent != -1:
+        if tf_idf_vectorizer is None:
+            with open("exsum/tf_idf_vectorizer_100_01.pickle", mode="rb") as f:
+                tf_idf_vectorizer = pickle.load(f)
+        print "Saving ", k_sent, " sent ..."
+        progress_bar = ProgressBar(len(dataset))
+        for filename, content, highlights in dataset:
+            selected_sents = select_k_sents(content,tf_idf_vectorizer, k_sent)
+            fo_content.write(" ".join(selected_sents).replace("\n"," ") + "\n")
+            fo_sum.write(" ".join(highlights).replace("\n"," ") + "\n")
+            progress_bar.Increment()
+    else:
+        print "Saving all sent ..."
+        progress_bar = ProgressBar(len(dataset))
+        for filename, content, highlights in dataset:
+            fo_content.write(" ".join(content).replace("\n"," ") + "\n")
+            fo_sum.write(" ".join(highlights).replace("\n"," ") + "\n")
+            progress_bar.Increment()
+    fo_content.close()
+    fo_sum.close()
+
+def save_data_4_nn_k_words(dataset, path2OutDir, k_words= -1, tf_idf_vectorizer = None, data_name = "cnn"):
+
+    if os.path.isdir(path2OutDir + data_name) is False:
+        os.makedirs(path2OutDir + data_name)
+
+    fo_content = io.open(path2OutDir + "{0}/{1}words_{2}line.content".format(data_name,k_words,len(dataset)), "w", encoding='utf8')
+    fo_sum = io.open(path2OutDir + "{0}/{1}words_{2}line.summary".format(data_name,k_words,len(dataset)), "w", encoding='utf8')
+    if k_words != -1:
+        if tf_idf_vectorizer is None:
+            with open("exsum/tf_idf_vectorizer_100_01.pickle", mode="rb") as f:
+                tf_idf_vectorizer = pickle.load(f)
+        print "Saving ", k_words, " sent ..."
+        progress_bar = ProgressBar(len(dataset))
+        for filename, content, highlights in dataset:
+            selected_sents = select_k_words(content,tf_idf_vectorizer, k_words)
+            fo_content.write(" ".join(selected_sents).replace("\n"," ") + "\n")
+            fo_sum.write(" ".join(highlights).replace("\n"," ") + "\n")
+            progress_bar.Increment()
+    else:
+        print "Saving all sent ..."
+        progress_bar = ProgressBar(len(dataset))
+        for filename, content, highlights in dataset:
+            fo_content.write(" ".join(content).replace("\n"," ") + "\n")
+            fo_sum.write(" ".join(highlights).replace("\n"," ") + "\n")
+            progress_bar.Increment()
+    fo_content.close()
+    fo_sum.close()
 
 
 def saveXML(dataset, path_2_out_dir, extension):
@@ -368,6 +427,6 @@ if __name__ == "__main__":
 
     dataset = loadData("/Users/HyNguyen/Documents/Research/Data/stories")
     start = time.time()
-    saveData_ksent(dataset,"/Users/HyNguyen/Documents/Research/Data/stories_5sent","txt",k_sent=5)
+    save_data_4_nn_k_words(dataset,"/Users/HyNguyen/Documents/Research/Data/stories_4nn",k_words=300 ,data_name="cnn")
     end = time.time()
     print("time for ", len(dataset), ": ", end-start)
