@@ -1,3 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
 data/*
-dl4mt/*
+dl4mt/data/content
+dl4mt/data/summary
+dl4mt/data/all*
