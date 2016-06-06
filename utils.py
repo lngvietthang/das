@@ -107,7 +107,7 @@ def getFilenames(path2Dir):
 
     return lstFiles
 
-def loadData(path2Dir):
+def loadData(path2Dir, earlystop = -1):
     '''
     Load all stories in the directory
     :param path2Dir: path to directory
@@ -127,6 +127,9 @@ def loadData(path2Dir):
             continue
         data.append((filename, content, highlights))
         progress_bar.Increment()
+        if earlystop != -1 and counter == earlystop:
+            break
+
     return data
 
 def saveData(dataset, path2OutDir, extension):
@@ -212,13 +215,22 @@ def save_data_4_nn_k_sents(dataset, path2OutDir, k_sent= -1, tf_idf_vectorizer =
     fo_content.close()
     fo_sum.close()
 
+def filter_sent(sentences):
+    for idx in range(len(sentences)):
+        if sentences[idx][-1].isalnum() or sentences[idx][-1] == " ":
+            sentences[idx]+="."
+    return sentences
+
 def save_data_4_nn_k_words(dataset, path2OutDir, k_words= -1, tf_idf_vectorizer = None, data_name = "cnn"):
+    if os.path.isdir(path2OutDir) is False:
+        os.makedirs(path2OutDir)
+        if os.path.isdir(path2OutDir + "/content") is False:
+            os.makedirs(path2OutDir + "/content")
+        if os.path.isdir(path2OutDir + "/summary") is False:
+            os.makedirs(path2OutDir + "/summary")
 
-    if os.path.isdir(path2OutDir + data_name) is False:
-        os.makedirs(path2OutDir + data_name)
-
-    fo_content = io.open(path2OutDir + "{0}/{1}words_{2}line.content".format(data_name,k_words,len(dataset)), "w", encoding='utf8')
-    fo_sum = io.open(path2OutDir + "{0}/{1}words_{2}line.summary".format(data_name,k_words,len(dataset)), "w", encoding='utf8')
+    fo_content = io.open(path2OutDir + "/content/{0}words_{1}line.content".format(k_words,len(dataset)), "w", encoding='utf8')
+    fo_sum = io.open(path2OutDir + "/summary/{0}words_{1}line.summary".format(k_words,len(dataset)), "w", encoding='utf8')
     if k_words != -1:
         if tf_idf_vectorizer is None:
             with open("exsum/tf_idf_vectorizer_100_01.pickle", mode="rb") as f:
@@ -227,13 +239,15 @@ def save_data_4_nn_k_words(dataset, path2OutDir, k_words= -1, tf_idf_vectorizer 
         progress_bar = ProgressBar(len(dataset))
         for filename, content, highlights in dataset:
             selected_sents = select_k_words(content,tf_idf_vectorizer, k_words)
-            fo_content.write(" ".join(selected_sents).replace("\n"," ") + "\n")
-            fo_sum.write(" ".join(highlights).replace("\n"," ") + "\n")
+            highlights = filter_sent(highlights)
+            fo_content.write(" ".join(selected_sents).replace("\n"," ") + u"\n")
+            fo_sum.write(" ".join(highlights).replace("\n"," ") + u"\n")
             progress_bar.Increment()
     else:
         print "Saving all sent ..."
         progress_bar = ProgressBar(len(dataset))
         for filename, content, highlights in dataset:
+            highlights = filter_sent(highlights)
             fo_content.write(" ".join(content).replace("\n"," ") + "\n")
             fo_sum.write(" ".join(highlights).replace("\n"," ") + "\n")
             progress_bar.Increment()
@@ -423,10 +437,13 @@ def compute_tf_idf_vectorizer(data_path="/Users/HyNguyen/Documents/Research/Data
 
 
 if __name__ == "__main__":
+
+
+
     # compute_tf_idf_vectorizer(save_path="exsum/tf_idf_vectorizer_200_01.pickle",max_df=0.1,min_df=200)
 
-    dataset = loadData("/Users/HyNguyen/Documents/Research/Data/stories")
+    dataset = loadData("/Users/HyNguyen/Documents/Research/Data/stories",100)
     start = time.time()
-    save_data_4_nn_k_words(dataset,"/Users/HyNguyen/Documents/Research/Data/stories_4nn",k_words=300 ,data_name="cnn")
+    save_data_4_nn_k_words(dataset,"/Users/HyNguyen/Documents/Research/Data/stories_4nn",k_words=100 ,data_name="cnn")
     end = time.time()
     print("time for ", len(dataset), ": ", end-start)
