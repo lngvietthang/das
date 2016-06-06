@@ -224,10 +224,10 @@ def filter_sent(sentences):
 def save_data_4_nn_k_words(dataset, path2OutDir, k_words= -1, tf_idf_vectorizer = None, data_name = "cnn"):
     if os.path.isdir(path2OutDir) is False:
         os.makedirs(path2OutDir)
-        if os.path.isdir(path2OutDir + "/content") is False:
-            os.makedirs(path2OutDir + "/content")
-        if os.path.isdir(path2OutDir + "/summary") is False:
-            os.makedirs(path2OutDir + "/summary")
+    if os.path.isdir(path2OutDir + "/content") is False:
+        os.makedirs(path2OutDir + "/content")
+    if os.path.isdir(path2OutDir + "/summary") is False:
+        os.makedirs(path2OutDir + "/summary")
 
     fo_content = io.open(path2OutDir + "/content/{0}words_{1}line.content".format(k_words,len(dataset)), "w", encoding='utf8')
     fo_sum = io.open(path2OutDir + "/summary/{0}words_{1}line.summary".format(k_words,len(dataset)), "w", encoding='utf8')
